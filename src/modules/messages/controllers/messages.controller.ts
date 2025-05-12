@@ -33,7 +33,6 @@ export class MessagesController {
   private readonly uploadMessageFileType = ['image/jpeg', 'image/png', 'application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
 
   @Post('create-message')
-  @Roles('EXPERT', 'SOLICITOR')
   @UseInterceptors(
       FileFieldsInterceptor([
         { name: 'messageDocumentFiles', maxCount: 10 }

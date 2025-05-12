@@ -73,7 +73,10 @@ export class UserService {
       const limit = Number(payload?.limit) || DEFAULT_LIMIT;
 
       let whereCondition: any = {
-        isDeleted: false
+        isDeleted: false,
+        id: {
+          [Op.ne]: userId
+        }
       };
 
       const includeClause: any[] = [];
