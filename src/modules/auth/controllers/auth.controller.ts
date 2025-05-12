@@ -178,38 +178,7 @@ export class AuthController {
     return this.authService.updateExpertPersonalDetails(user.id, payload);
   }
 
-  // update expert specialities details
-  @ApiTags('Web')
-  @ApiOperation({
-    summary: 'Update Expert Specialities Details in Web',
-    description: 'Allows expert user to update specialities details in the profile section',
-  })
-  @ApiBearerAuth('Authorization')
-  @Post('update-expert-specialities-details')
-  async updateExpertSpecialitiesDetails(
-    @AuthUser() user: Users,
-    @Body() payload: updateExpertSpecialitiesDetailsDTO,
-    @Request() req
-  ) {
-    req.message = 'Expert specialities updated successfully.';
-    return this.authService.updateExpertSpecialitiesDetails(user.id, payload);
-  }
 
-  @ApiTags('Web')
-  @ApiOperation({
-    summary: 'Update Expert Fee Structure Details in Web',
-    description: 'Allows expert user to update fee structure details in the profile section',
-  })
-  @ApiBearerAuth('Authorization')
-  @Post('update-expert-fee-details')
-  async updateExpertFeeDetails(
-    @AuthUser() user: Users,
-    @Body() payload: updateExpertFeeDetailsDTO,
-    @Request() req
-  ) {
-    req.message = 'Expert fee details updated successfully.';
-    return this.authService.updateExpertFeeDetails(user.id, payload);
-  }
 
   @ApiTags('Mobile')
   @ApiOperation({
@@ -344,35 +313,4 @@ export class AuthController {
     );
   }
 
-  @Put('update-user-documents')
-  @ApiOperation({ description: 'API to update use documents' }) // Operation description for Swagger
-  @ApiBody({ type: UpdateUserDocumentsDto }) // Body parameters for document update
-  @UseInterceptors(FileInterceptor('userDocumentFile')) // Handle file upload
-  async updateUserDocument(
-    @UploadedFile() userDocumentFile: Express.Multer.File, // The uploaded document file
-    @AuthUser() user: Users,
-    @Body() body: UpdateUserDocumentsDto // Document details to be updated
-  ) {
-
-    // Validate the uploaded file (check size, type, etc.)
-    await validateFile(
-      {
-        userDocumentFile: userDocumentFile,
-      },
-      {
-        userDocumentFile: {
-          required: false,
-          maxSize: 10, // 10MB max size
-          allowedTypes: this.uploadDocumentFileType, // Allowed file types
-        },
-      }
-    );
-
-    // Call the service method to update the document
-    return await this.authService.updateUserDocumentFiles(
-      body,
-      user.id,
-      userDocumentFile
-    );
-  }
 }

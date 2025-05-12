@@ -30,7 +30,6 @@ import { Roles } from '@common/decorators/roles.decorator';
 import { Users } from '@src/models/user.model';
 import { FilesInterceptor, NoFilesInterceptor } from '@nestjs/platform-express';
 import { storage } from '@common/global-helpers/all.helpers';
-import { CsvService } from '../services/csv.service';
 import { join } from 'path';
 import { unlinkSync } from 'fs';
 
@@ -38,7 +37,6 @@ import { unlinkSync } from 'fs';
 export class UsersController {
   constructor(
     private readonly userService: UserService,
-    private readonly csvService: CsvService
   ) {}
 
   @Public()
@@ -104,49 +102,10 @@ export class UsersController {
     return await this.userService.deleteUser(payload);
   }
 
-  @Roles('SUPERADMIN')
-  @Post('upload-users-csv')
-  @UseInterceptors(
-    FilesInterceptor('file', 1, {
-      storage: storage,
-    })
-  )
-  async uploadCsv(
-    @UploadedFiles() files: Express.Multer.File[],
-    @Body() payload: CreateBulkUsers
-  ): Promise<string> {
-    if (!files || files.length === 0) {
-      throw new BadRequestException('File is required!');
-    }
-
-    const file = files[0];
-    if (!file.originalname.match(/\.(csv|xlsx|xls)$/i)) {
-      unlinkSync(file.path);
-      throw new BadRequestException('Only CSV and Excel files are allowed!');
-    }
-    try {
-      const [header] = await this.csvService.readFileHeader(file.path);
-      if (!this.csvService.validateHeaders(header)) {
-        throw new BadRequestException(`Missing required columns`);
-      }
-    } catch (error) {
-      unlinkSync(file.path);
-      throw new BadRequestException(error);
-    }
-    this.csvService.processFileAndAddUsers(file.path, payload.company);
-    return `The imported file is currently in processing state. You will receive an email about the status once the file is correctly processed.`;
-  }
-
+  
   @Get('get-all-count')
   async getTotalCount(@AuthUser() user: Users) {
     return await this.userService.getTotalCount();
-  }
-
-  @Get('get-all-count-web')
-  @ApiBearerAuth('Authorization')
-  async getTotalCountweb(@AuthUser() user: Users) {
-    console.log('user-----', user);
-    return await this.userService.getTotalCountweb(user);
   }
 
   @Get('download')

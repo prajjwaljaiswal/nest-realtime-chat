@@ -21,6 +21,7 @@ import { CaseType } from './caseType.model';
 import { ExpertFeeStructure } from './expertFeeStructure.model';
 import { CaseSolicitors } from './caseSolicitors.model';
 import { CaseExperts } from './caseExperts.model';
+import { UserContacts } from './userContacts.model';
 
 @Table({
   timestamps: true, // Enables createdAt and updatedAt
@@ -58,12 +59,6 @@ export class Users extends BaseModel<Users> {
   @Default(0)
   @Column
   noOfAttempts: number;
-
-  @Column({
-    type: DataType.ENUM('SUPERADMIN', 'ADMIN', 'SOLICITOR', 'EXPERT'),
-    defaultValue: 'SUPERADMIN',
-  })
-  role: ROLES;
 
   @Column({
     type: DataType.STRING,
@@ -122,26 +117,6 @@ export class Users extends BaseModel<Users> {
   })
   postcode: string; // pincode or postcode of the location
 
-  @Column({
-    type: DataType.STRING(150),
-    allowNull: true,
-    defaultValue: null,
-  })
-  companyName: string; // required in case of SOLICITOR users
-
-  @Column({
-    type: DataType.STRING(150),
-    allowNull: true,
-    defaultValue: null,
-  })
-  jobTitle: string; // required in case of EXPERT users
-
-  @Column({
-    type: DataType.STRING,
-    allowNull: true,
-    defaultValue: null,
-  })
-  expertise: string; // This related to the EXPERT users
 
   @Column({
     type: DataType.DATE,
@@ -155,61 +130,9 @@ export class Users extends BaseModel<Users> {
   };
 
   @Column({
-    type: DataType.NUMBER,
-    defaultValue: 0,
-  })
-  totalExperience: number; // This related to the EXPERT users
-
-  @Column({
-    type: DataType.NUMBER,
-    defaultValue: 0,
-  })
-  totalProfessionalExperience: number; // This related to the EXPERT users
-
-  @Column({
     defaultValue: false,
   })
   isUserEmailVerify: boolean;
-
-  @Column({
-    defaultValue: false,
-  })
-  isProfileSetup: boolean; // true for profile setup and false for profile not setup
-
-  @Default(1)
-  @Column
-  profileSetupStep: number; // this is for Expert profile setup, by default value will be 1
-
-  @Default(1)
-  @Column
-  profileUploadDocumentStep: number; // this is for Expert profile setup, by default value will be 1, this is the sub step of the profile setup step-4, In the step 4 user will upload documents.
-
-  @Column({
-    type: DataType.ENUM('PENDING', 'APPROVED', 'REJECTED'),
-    defaultValue: 'PENDING',
-  })
-  approvalStatus: APPROVE_STATUS;
-
-  @Column({
-    type: DataType.STRING,
-    allowNull: true,
-    defaultValue: null,
-  })
-  rejectionComments: string;
-
-  // @Column({
-  //   type: DataType.TEXT,
-  //   allowNull: true,
-  //   defaultValue: null,
-  // })
-  // bio: string;
-
-  @Column({
-    type: DataType.TEXT,
-    allowNull: true,
-    defaultValue: null,
-  })
-  experienceDetails: string;
 
   @Column({
     defaultValue: false,
@@ -219,7 +142,7 @@ export class Users extends BaseModel<Users> {
   @Column({
     defaultValue: false,
   })
-  status: boolean; // true for active and false for inactive
+  status: boolean;
 
   @CreatedAt
   @Column
@@ -233,40 +156,6 @@ export class Users extends BaseModel<Users> {
   @Column
   deletedAt?: Date;
 
-  @HasMany(() => UserDocuments) // Establish the One-to-Many relationship
-  userDocuments: UserDocuments[];
-
-  @HasMany(() => ExpertSpecialities, {
-    foreignKey: 'userId',
-    as: 'userExpertSpecialities',
-  }) // Unique alias here
-  expertSpecialities: ExpertSpecialities[];
-
-  @HasMany(() => ExpertCaseSpecialities, {
-    foreignKey: 'userId',
-    as: 'userExpertCaseSpecialities',
-  }) // Unique alias here
-  expertCaseSpecialities: ExpertCaseSpecialities[];
-
-  @HasMany(() => ExpertFeeStructure, {
-    foreignKey: 'userId',
-    as: 'userExpertFeeStructure',
-  }) // Unique alias here
-  ExpertFeeStructure: ExpertFeeStructure[];
-  
-
-  @BelongsToMany(() => Specialities, () => ExpertSpecialities) // Unique alias here
-  specialities: Specialities[];
-
-  @BelongsToMany(() => CaseType, () => ExpertCaseSpecialities) // Unique alias here
-  caseType: CaseType[];
-
-  @HasMany(() => CaseSolicitors, {
-    as: 'userSolicitors',
-    foreignKey: 'solicitorId',
-  }) // Define the association
-  solicitorCases: CaseSolicitors[];
-
-  @HasMany(() => CaseExperts, { as: 'userExperts', foreignKey: 'expertId' }) // Define the association
-  expertCases: CaseExperts[];
+  @HasMany(() => UserContacts, { as: 'userContacts', foreignKey: 'userId' })
+  expertCases: UserContacts[];
 }

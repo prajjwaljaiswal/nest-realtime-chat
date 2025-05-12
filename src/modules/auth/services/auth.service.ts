@@ -75,7 +75,7 @@ export class AuthService {
     private emailService: EmailService,
     private db: SeqeulizeService,
     private readonly fileUpload: FileService // Service to handle file uploads
-  ) {}
+  ) { }
 
   async validate_user(email: string) {
     email = email.toLowerCase(); // Convert email to lowercase
@@ -97,26 +97,7 @@ export class AuthService {
         'Your account has not been activated yet. Please reach out to the administration for more information.'
       );
     }
-    let accessRoles = ['EXPERT', 'SOLICITOR'];
-    if (
-      accessRoles.includes(user.role) &&
-      ((user.role == 'EXPERT' && user.approvalStatus != 'APPROVED') ||
-        (user.role == 'SOLICITOR' && user.approvalStatus == 'REJECTED'))
-    ) {
-      if (user.approvalStatus == 'REJECTED') {
-        throw new BadRequestException(
-          'Your account has been rejected by the admin. Please reach out to the administrator for more details.'
-        );
-      } else if (user.approvalStatus == 'PENDING') {
-        throw new BadRequestException(
-          'Your account is still pending approval. Please wait for the admin to approve it.'
-        );
-      } else {
-        throw new BadRequestException(
-          'Your account is pending for approval yet or rejected, Please contact the administrator for further details.'
-        );
-      }
-    }
+
     return user;
   }
 
@@ -168,11 +149,6 @@ export class AuthService {
       const header = headers['x-forwarded-for'] ?? '0.0.0.0';
       const user = await this.validate_user(email);
 
-      let accessRoles = ['ADMIN', 'SUPERADMIN'];
-      if (!isUser && !accessRoles.includes(user.role)) {
-        throw new BadRequestException('You are not authorized access.');
-      }
-
       // if (isStaff && user.role !== 'STAFF') {
       //   throw new BadRequestException('You are not authorized access.');
       // }
@@ -187,7 +163,6 @@ export class AuthService {
         const payload: IPayloadUserJwt = {
           userId: user.id,
           rememberme: rememberme,
-          role: user.role,
           lastLogin: lastLoginTime,
         };
         const authToken =
@@ -257,13 +232,6 @@ export class AuthService {
       const header = headers['x-forwarded-for'] ?? '0.0.0.0';
       const user = await this.validate_user(email);
 
-      let accessRoles = ['EXPERT', 'SOLICITOR'];
-      if (!isUser && !accessRoles.includes(user.role)) {
-        throw new BadRequestException(
-          'You are not authorized to access this area!'
-        );
-      }
-
       //const noOfAttempts = await this.handleLockoutAttempts(header);
       const isMatchedPassword = await this.passwordService.validatePassword(
         password,
@@ -275,7 +243,6 @@ export class AuthService {
         const payload: IPayloadUserJwt = {
           userId: user.id,
           rememberme: rememberme,
-          role: user.role,
           lastLogin: lastLoginTime,
         };
         const authToken =
@@ -351,8 +318,7 @@ export class AuthService {
         );
       }
       throw new BadRequestException(
-        `Invalid email address or password. Please try again. ${remainingAttempt} ${
-          remainingAttempt > 1 ? 'attempts' : 'attempt'
+        `Invalid email address or password. Please try again. ${remainingAttempt} ${remainingAttempt > 1 ? 'attempts' : 'attempt'
         } remaining`
       );
     }
@@ -661,46 +627,6 @@ export class AuthService {
       let expertTraningDetails = '';
       let expertVatRegistrationFilePath = '';
       let expertVatRegistrationDetails = '';
-      // Check if the user has any documents
-      for (const doc of userData?.userDocuments || []) {
-        // if (doc?.documentName) {
-        //   doc.documentPath = this.fileUpload.getFilePath(doc.documentName);
-        // }
-        if (doc?.documentName && doc?.documentType == 'CV') {
-          expertCvPath = doc?.documentName
-            ? await this.fileUpload.getFilePath(doc.documentName)
-            : '';
-        }
-        if (doc?.documentName && doc?.documentType == 'REGULATORY') {
-          expertRegulatoryFilePath = doc?.documentName
-            ? await this.fileUpload.getFilePath(doc.documentName)
-            : '';
-        }
-        if (doc?.documentType == 'REGISTRATION_BODY') {
-          registerBodyId = doc?.registerBodyId || '';
-          expertRegistrationBodyFilePath = doc?.documentName
-            ? await this.fileUpload.getFilePath(doc.documentName)
-            : '';
-        }
-        if (doc?.documentType == 'REGISTRATION_NUMBER') {
-          expertRegistrationNumber = doc?.description || '';
-          expertRegistrationNumberFilePath = doc?.documentName
-            ? await this.fileUpload.getFilePath(doc.documentName)
-            : '';
-        }
-        if (doc?.documentType == 'TRANING') {
-          expertTraningDetails = doc?.description || '';
-          expertTrainingFilePath = doc?.documentName
-            ? await this.fileUpload.getFilePath(doc.documentName)
-            : '';
-        }
-        if (doc?.documentType == 'VAT_REGISTRATION') {
-          expertVatRegistrationDetails = doc?.description || '';
-          expertVatRegistrationFilePath = doc?.documentName
-            ? await this.fileUpload.getFilePath(doc.documentName)
-            : '';
-        }
-      }
 
       let avatarPath = userData?.avatar || '';
       if (userData?.avatar) {
@@ -777,9 +703,6 @@ export class AuthService {
     userData.countryCode = payload.code;
     userData.postcode = payload.postcode;
     userData.location = payload.location;
-    userData.companyName = payload.companyname;
-    userData.experienceDetails = payload.experienceDetails;
-    userData.isProfileSetup = true;
 
     await userData.save();
 
@@ -826,120 +749,11 @@ export class AuthService {
     userData.postcode = payload.postcode;
     userData.location = payload.location;
     userData.city = payload.city;
-    userData.companyName = payload?.companyName || null;
-    userData.jobTitle = payload.jobTitle;
-    userData.totalExperience = payload?.totalExperience;
-    userData.totalProfessionalExperience = payload.totalProfessionalExperience;
-    userData.profileSetupStep = 2;
 
     await userData.save();
     return;
   }
 
-  async updateExpertSpecialitiesDetails(
-    userId: string,
-    payload: updateExpertSpecialitiesDetailsDTO
-  ) {
-    try {
-      // Extract expertSpecialities and expertCaseSpecialities from the payload
-      const { expertSpecialities, expertCaseSpecialities } = payload;
-
-      // Update ExpertSpecialities
-      if (expertSpecialities && expertSpecialities.length > 0) {
-        // Delete existing records for the user
-        await this.db.delete(ExpertSpecialities, {
-          where: { userId },
-        });
-
-        // Prepare new records for insertion
-        const expertSpecialitiesData = expertSpecialities.map((speciality) => ({
-          userId,
-          specialityId: speciality.id,
-        }));
-
-        // Insert new records
-        await this.db.bulkCreate(ExpertSpecialities, expertSpecialitiesData);
-      }
-
-      // Update ExpertCaseSpecialities
-      if (expertCaseSpecialities && expertCaseSpecialities.length > 0) {
-        // Delete existing records for the user
-        await this.db.delete(ExpertCaseSpecialities, {
-          where: { userId },
-        });
-
-        // Prepare new records for insertion
-        const expertCaseSpecialitiesData = expertCaseSpecialities.map(
-          (caseSpeciality) => ({
-            userId,
-            caseTypeId: caseSpeciality.id,
-          })
-        );
-
-        // Insert new records
-        await this.db.bulkCreate(
-          ExpertCaseSpecialities,
-          expertCaseSpecialitiesData
-        );
-      }
-      // Update the profileSetupStep value to 3 in the Users table
-      await this.db.update(
-        Users,
-        { profileSetupStep: 3 },
-        { where: { id: userId } }
-      );
-
-      return;
-    } catch (error) {
-      throw new BadRequestException(
-        error.message || 'Failed to update specialities.'
-      );
-    }
-  }
-
-  async updateExpertFeeDetails(
-    userId: string,
-    payload: updateExpertFeeDetailsDTO
-  ) {
-    try {
-      // Extract expertSpecialities and expertCaseSpecialities from the payload
-      const { expertFeeDetails } = payload;
-
-      // Update ExpertSpecialities
-      if (expertFeeDetails && expertFeeDetails.length > 0) {
-        // Delete existing records for the user
-        await this.db.delete(ExpertFeeStructure, {
-          where: { userId },
-        });
-
-        // Prepare new records for insertion
-        const expertFeeData = expertFeeDetails.map((feeData) => ({
-          userId,
-          caseTypeId: feeData.caseTypeId,
-          hourlyRate: feeData.hourlyRate,
-          comment: feeData.comment,
-          oneIndividualHours: feeData.individual1,
-          twoIndividualHours: feeData.individual2,
-          threeIndividualHours: feeData.individual3,
-        }));
-
-        // Insert new records
-        await this.db.bulkCreate(ExpertFeeStructure, expertFeeData);
-      }
-
-      // Update the profileSetupStep value to 4 in the Users table
-      await this.db.update(
-        Users,
-        { profileSetupStep: 4 },
-        { where: { id: userId } }
-      );
-      return;
-    } catch (error) {
-      throw new BadRequestException(
-        error.message || 'Failed to update fee details.'
-      );
-    }
-  }
 
   async updatePassword(userId: string, payload: UpdatePasswordPayload) {
     const userData = await this.db.get(Users, {
@@ -1027,31 +841,6 @@ export class AuthService {
         );
       }
 
-      let accessRoles = ['EXPERT', 'SOLICITOR'];
-      if (!accessRoles.includes(user.role)) {
-        throw new BadRequestException(
-          'You are not authorized to access this area!'
-        );
-      }
-
-      // if (otpType === 'signup') {
-      //   const userWhere = { email: payload.email, isDeleted: false };
-      //   const user = await this.db.get(Users, { where: userWhere });
-      //   if (user) {
-      //     throw new BadRequestException(
-      //       'This email is already registered with us. Please try using a different one.'
-      //     );
-      //   }
-      // } else {
-      //   const userWhere = { email: payload.email, isDeleted: false };
-      //   const user = await this.db.get(Users, { where: userWhere });
-      //   if (!user) {
-      //     throw new BadRequestException(
-      //       'This email address is not registered with us. Please try using a different one.'
-      //     );
-      //   }
-      // }
-
       const otpWhere = { email: payload.email };
       const otpuser = await this.db.get(Otp, { where: otpWhere });
 
@@ -1108,13 +897,6 @@ export class AuthService {
       if (!user) {
         throw new BadRequestException(
           'This email address is not registered with us. Please try using a different one.'
-        );
-      }
-
-      let accessRoles = ['SUPERADMIN'];
-      if (!accessRoles.includes(user.role)) {
-        throw new BadRequestException(
-          'You are not authorized to access this area!'
         );
       }
 
@@ -1224,7 +1006,6 @@ export class AuthService {
           const payloadjwt: IPayloadUserJwt = {
             userId: userDetails.id,
             rememberme: true,
-            role: userDetails.role,
             lastLogin: lastLoginTime,
           };
           const authToken =
@@ -1341,7 +1122,6 @@ export class AuthService {
           const payloadjwt: IPayloadUserJwt = {
             userId: userDetails.id,
             rememberme: true,
-            role: userDetails.role,
             lastLogin: lastLoginTime,
           };
           const authToken =
@@ -1596,145 +1376,6 @@ export class AuthService {
       } else {
         throw new BadRequestException('Failed to update avatar.');
       }
-    } catch (error) {
-      throw new BadRequestException(
-        error.message || 'An error occurred while updating the avatar.'
-      );
-    }
-  }
-
-  async updateUserDocumentFiles(
-    parameter: UpdateUserDocumentsDto,
-    userId: string,
-    userDocumentFile: Express.Multer.File
-  ) {
-    try {
-      console.log('parameter', parameter);
-      // Check if a record with the given userId and documentType "CV" already exists
-      const existingDocument = await this.db.get(UserDocuments, {
-        where: {
-          userId: userId,
-          documentType: parameter.documentType, // Check for documentType "CV"
-        },
-      });
-      let newFileName = '';
-      let registerBodyName = '';
-      if (
-        parameter?.documentType === 'REGISTRATION_BODY' &&
-        parameter?.registerBodyId
-      ) {
-        const registerBody = await this.db.get(RegisterBodies, {
-          where: {
-            id: parameter.registerBodyId,
-          },
-        });
-        registerBodyName = registerBody?.title || '';
-      }
-
-      if (userDocumentFile) {
-        // Generate a new file name using the current timestamp with milliseconds
-        const timestamp = Date.now(); // Current timestamp in milliseconds
-        const fileExtension = path.extname(userDocumentFile.originalname); // Get the file extension
-        const randomSixDigit = Math.floor(100000 + Math.random() * 900000); // Generate a random 6-digit number
-        newFileName = `userDocuments/${randomSixDigit}_${timestamp}${fileExtension}`; // New file name
-
-        const documentUploadObj = {
-          userId: userId,
-          documentName: newFileName,
-          registerBodyId: parameter?.registerBodyId || null,
-          description:
-            parameter?.documentType === 'REGISTRATION_BODY'
-              ? registerBodyName
-              : parameter?.description,
-          documentType: parameter?.documentType as USER_DOCUMENT_TYPES, // Explicitly cast to USER_DOCUMENT_TYPES
-        };
-
-        const documentURL = await this.fileUpload.uploadFile(
-          userDocumentFile as Express.Multer.File,
-          newFileName
-        );
-        if (existingDocument) {
-          // update re into table
-          await this.db.update(UserDocuments, documentUploadObj, {
-            where: { id: existingDocument?.id },
-          });
-        } else {
-          // Create a new record in the UserDocuments table
-          await this.db.create(UserDocuments, documentUploadObj);
-        }
-      } else {
-        const documentUploadObj = {
-          userId: userId,
-          registerBodyId: parameter?.registerBodyId || null,
-          description:
-            parameter?.documentType === 'REGISTRATION_BODY'
-              ? registerBodyName
-              : parameter?.description,
-          documentType: parameter?.documentType as USER_DOCUMENT_TYPES, // Explicitly cast to USER_DOCUMENT_TYPES
-          documentName: existingDocument?.documentName, // Add documentName property with a default value
-        };
-        if (parameter.removeUserDocument == 'true') {
-          // remove document from S3
-          //await this.fileUpload.deleteFile(existingDocument?.documentName);
-          documentUploadObj.documentName = null;
-        }
-        console.log('documentUploadObj', documentUploadObj);
-        if (existingDocument) {
-          // update re into table
-          await this.db.update(UserDocuments, documentUploadObj, {
-            where: { id: existingDocument?.id },
-          });
-        } else {
-          // Create a new record in the UserDocuments table
-          await this.db.create(UserDocuments, documentUploadObj);
-        }
-      }
-
-      // Update the profileUploadDocumentStep value to 2 in the Users table
-      let profileUploadDocumentStep = 1;
-      let updateUserData: {
-        profileUploadDocumentStep: number;
-        experienceDetails: string;
-        isProfileSetup?: boolean;
-      } = {
-        profileUploadDocumentStep: profileUploadDocumentStep,
-        experienceDetails: parameter?.experienceDetails || '',
-      };
-      if (parameter.documentType === 'CV') {
-        profileUploadDocumentStep = 2;
-        updateUserData.profileUploadDocumentStep = profileUploadDocumentStep;
-      } else if (parameter.documentType === 'REGULATORY') {
-        profileUploadDocumentStep = 3;
-        updateUserData.profileUploadDocumentStep = profileUploadDocumentStep;
-      } else if (parameter.documentType === 'REGISTRATION_BODY') {
-        profileUploadDocumentStep = 4;
-        updateUserData.profileUploadDocumentStep = profileUploadDocumentStep;
-      } else if (parameter.documentType === 'REGISTRATION_NUMBER') {
-        profileUploadDocumentStep = 5;
-        updateUserData.profileUploadDocumentStep = profileUploadDocumentStep;
-      } else if (parameter.documentType === 'TRANING') {
-        profileUploadDocumentStep = 6;
-        updateUserData.profileUploadDocumentStep = profileUploadDocumentStep;
-      } else if (parameter.documentType === 'VAT_REGISTRATION') {
-        profileUploadDocumentStep = 7;
-        updateUserData = {
-          profileUploadDocumentStep: profileUploadDocumentStep,
-          isProfileSetup: true, // Only update isProfileSetup for VAT_REGISTRATION
-          experienceDetails: parameter?.experienceDetails || '',
-        };
-      }
-
-      await this.db.update(Users, updateUserData, { where: { id: userId } });
-
-      let userDocumentFilePath = '';
-      if (newFileName) {
-        // Generate the avatar URL
-        userDocumentFilePath = await this.fileUpload.getFilePath(newFileName);
-      }
-      return {
-        message: 'Document is updated successfully!',
-        documentPath: userDocumentFilePath,
-      };
     } catch (error) {
       throw new BadRequestException(
         error.message || 'An error occurred while updating the avatar.'

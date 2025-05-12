@@ -6,7 +6,6 @@ import { EmailService } from '@providers/email/email.service';
 import { JwtService } from '@nestjs/jwt';
 import { EmailModule } from '@providers/email/email.module';
 import { SeqeulizeService } from '@providers/sequelize/sequelize.service';
-import { CsvService } from './services/csv.service';
 
 @Module({
   imports: [EmailModule],
@@ -16,7 +15,6 @@ import { CsvService } from './services/csv.service';
     PasswordService,
     EmailService,
     JwtService,
-    CsvService,
   ],
   controllers: [UsersController],
 })

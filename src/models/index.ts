@@ -29,6 +29,7 @@ import { CaseJobDocuments } from './caseJobDocuments.model';
 import { Messages } from './messages.model';
 import { MessageDocuments } from './messageDocuments.model';
 import { CaseAdditionalWork } from './caseAdditionalWork.model';
+import { UserContacts } from './userContacts.model';
 
 const models = [
   Users,
@@ -61,6 +62,7 @@ const models = [
   CaseJobDocuments,
   Messages,
   MessageDocuments,
-  CaseAdditionalWork
+  CaseAdditionalWork,
+  UserContacts
 ];
 export default models;

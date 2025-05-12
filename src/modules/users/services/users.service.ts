@@ -428,10 +428,6 @@ export class UserService {
         throw new BadRequestException('User not found');
       }
 
-      // Update the user instance
-      user.approvalStatus = payload.approvalStatus;
-      user.rejectionComments = payload.rejectionComments;
-
       console.log('Updating approval status:', {
         id: payload.id,
         approvalStatus: payload.approvalStatus,
@@ -448,23 +444,6 @@ export class UserService {
       let template = '';
       let slug = '';
       let subject = '';
-
-      if (payload.approvalStatus === 'APPROVED') {
-        if (user.role === 'EXPERT') {
-          template = 'expert-account-approval-notification';
-          slug = 'expert-account-approval-notification';
-          subject = 'Your Expert Account Has Been Approved';
-        } else if (user.role === 'SOLICITOR') {
-          template = 'solicitor-account-approval-notification';
-          slug = 'solicitor-account-approval-notification';
-          subject = 'Your Solicitor Account Has Been Approved';
-        }
-      } else if (payload.approvalStatus === 'REJECTED') {
-        template = 'reject-user-account';
-        slug = 'reject-user-account';
-        subject = 'Your Account Has Been Rejected';
-      }
-      console.log('---------', `${user.firstname} ${user.lastname || ''}`);
 
       // Send email notification if a valid template and slug are determined
       if (template && slug) {
@@ -507,16 +486,7 @@ export class UserService {
         },
         cascade: true,
       });
-      // await this.db.delete(Doctors, {
-      //   where: {
-      //     userId: { [Op.in]: payload?.id },
-      //   },
-      // });
-      // await this.db.delete(Users, {
-      //   where: {
-      //     id: { [Op.in]: payload?.id },
-      //   },
-      // });
+      
       return {
         message: 'User deleted successfully!',
       };
@@ -541,271 +511,22 @@ export class UserService {
         throw new BadRequestException('User not found');
       }
 
-      // Step 3: Role-based case association check
-      if (userData.role === 'EXPERT') {
-        const associatedCase = await this.db.get(CaseExperts, {
-          where: { expertId: payload.id },
-        });
-
-        if (associatedCase) {
-          throw new BadRequestException(
-            'This user is associated with a case as an expert and cannot be deleted.'
-          );
-        } else {
-          // No case found → proceed with delete
-          return await Promise.all(
-            payload.id.map((id) => this.performUserDeletion(id, userData))
-          );
-        }
-      } else if (userData.role === 'SOLICITOR') {
-        const associatedCase = await this.db.get(CaseSolicitors, {
-          where: { solicitorId: payload.id },
-        });
-
-        if (associatedCase) {
-          throw new BadRequestException(
-            'This user is associated with a case as a solicitor and cannot be deleted.'
-          );
-        } else {
-          // No case found → proceed with delete
-          return await Promise.all(
-            payload.id.map((id) => this.performUserDeletion(id, userData))
-          );
-        }
-      } else {
-        // For other roles → delete directly
-        return await Promise.all(
-          payload.id.map((id) => this.performUserDeletion(id, userData))
-        );
-      }
     } catch (error: any) {
       throw error;
     }
-  }
-
-  // Helper method to handle deletion
-  private async performUserDeletion(userId: string, userData: any) {
-    // Mark user as deleted (soft delete)
-    userData.isDeleted = true;
-    await userData.save();
-
-    // Force delete user documents
-    await this.db.delete(UserDocuments, {
-      where: { userId },
-      force: true,
-    });
-
-    // Force delete the user
-    await this.db.delete(Users, {
-      where: { id: userId },
-      force: true,
-    });
-
-    return {
-      message: 'User has been deleted successfully!',
-    };
   }
 
   async getTotalCount() {
     try {
-      // Count users grouped by role
-      const roles = ['EXPERT', 'SOLICITOR'];
-      const userCounts = await Promise.all(
-        roles.map(async (role) => {
           const { count } = await this.db.findAndCount(Users, {
-            where: { role, isDeleted: false },
+            where: { isDeleted: false },
           });
-          return { [role.toLowerCase() + 's']: count };
-        })
-      );
+          return { total : count };
 
-      // Convert user counts array to object
-      const userStats = Object.assign({}, ...userCounts);
-
-      // Count cases by status
-      // const caseStatuses = ["OPEN", "IN_PROGRESS", "CLOSED"];
-      // const caseCounts = await Promise.all(
-      //   caseStatuses.map(async (status) => {
-      //     const { count } = await this.db.findAndCount(Cases, { where: { status } });
-      //     return { [status.toLowerCase()]: count };
-      //   })
-      // );
-
-      // const caseStats = Object.assign({}, ...caseCounts, {
-      //   total: caseCounts.reduce((acc, obj) => acc + Object.values(obj)[0], 0),
-      // });
-
-      // Count financial statistics
-      // const totalInvoices = await this.db.count(Invoices);
-      // const commissionEarned = await this.db.sum(Invoices, "commission");
-      // const amountPaid = await this.db.sum(Invoices, "paidAmount");
-      // const amountPending = await this.db.sum(Invoices, "pendingAmount");
-
-      // Revenue trends (mocking past 7/30 days revenue)
-      const last7DaysRevenue = [1000, 1200, 800, 1100, 950, 1300, 900]; // Replace with actual DB logic
-      const last30DaysRevenue = [10000, 12000, 8000, 11000, 9500, 13000, 9000];
-
-      return {
-        users: userStats,
-        cases: { total: 200, open: 50, inProgress: 100, closed: 50 },
-        invoices: { total: 500, commission: 20000, paid: 15000, pending: 5000 },
-        revenue: { last7Days: last7DaysRevenue, last30Days: last30DaysRevenue },
-      };
     } catch (error: any) {
       console.error('Error in getTotalCount:', error);
       throw error;
     }
-  }
-
-  async getTotalCountweb(user: Users) {
-    try {
-      console.log('user-----', user);
-
-      // Fetch role and id from DB (safe fresh fetch)
-      const userData = await this.db.getByPk(Users, user.id, {
-        attributes: ['id', 'role'],
-      });
-
-      const last7DaysRevenue = [1000, 1200, 800, 1100, 950, 1300, 900];
-      const last30DaysRevenue = [10000, 12000, 8000, 11000, 9500, 13000, 9000];
-
-      // If the user is an expert, return expert-specific case stats for that expert only
-      let expertStats = null;
-      if (userData.role === 'EXPERT') {
-        const [totalPendingCases, totalAcceptedCases] = await Promise.all([
-          this.db.count(CaseExperts, {
-            where: {
-              invitationStatus: 'PENDING',
-              expertId: userData.id,
-            },
-          }),
-          this.db.count(CaseExperts, {
-            where: {
-              invitationStatus: 'ACCEPTED',
-              llaStatus: 'ACCEPTED',
-              expertId: userData.id,
-            },
-          }),
-        ]);
-
-        const { lastWeekTotalPendingCases, lastWeekTotalAcceptedCases } =
-          await this.getLastWeekCounts(userData.id); // pass expertId
-
-        const { currentWeekTotalPendingCases, currentWeekTotalAcceptedCases } =
-          await this.getCurrentWeekCounts(userData.id); // pass expertId
-
-        const pendingCaseGrowth =
-          lastWeekTotalPendingCases > 0
-            ? ((currentWeekTotalPendingCases - lastWeekTotalPendingCases) /
-                lastWeekTotalPendingCases) *
-              100
-            : 0;
-
-        const acceptedCaseGrowth =
-          lastWeekTotalAcceptedCases > 0
-            ? ((currentWeekTotalAcceptedCases - lastWeekTotalAcceptedCases) /
-                lastWeekTotalAcceptedCases) *
-              100
-            : 0;
-
-        expertStats = {
-          cases: {
-            total: 200, // Optional: replace with dynamic count if needed
-            open: 50,
-            inProgress: 100,
-            closed: 50,
-          },
-          invoices: {
-            total: 500,
-            commission: 20000,
-            paid: 15000,
-            pending: 5000,
-          },
-          revenue: {
-            last7Days: last7DaysRevenue,
-            last30Days: last30DaysRevenue,
-          },
-          stats: {
-            totalPendingCases,
-            totalAcceptedCases,
-            pendingCaseGrowth,
-            acceptedCaseGrowth,
-          },
-        };
-      }
-
-      return {
-        expert: expertStats,
-        solicitor: {
-          cases: {
-            total: 200,
-            open: 50,
-            inProgress: 100,
-            closed: 50,
-          },
-          invoices: {
-            total: 500,
-            commission: 20000,
-            paid: 15000,
-            pending: 5000,
-          },
-          revenue: {
-            last7Days: last7DaysRevenue,
-            last30Days: last30DaysRevenue,
-          },
-        },
-      };
-    } catch (error) {
-      console.error('Error in getTotalCountweb:', error);
-      throw error;
-    }
-  }
-
-  private async getLastWeekCounts(id: string) {
-    const oneWeekAgo = new Date();
-    oneWeekAgo.setDate(oneWeekAgo.getDate() - 14);
-
-    const lastWeekTotalPendingCases = await this.db.count(CaseExperts, {
-      where: {
-        invitationStatus: 'PENDING',
-        createdAt: { [Op.gte]: oneWeekAgo },
-      },
-    });
-
-    const lastWeekTotalAcceptedCases = await this.db.count(CaseExperts, {
-      where: {
-        invitationStatus: 'ACCEPTED',
-        llaStatus: 'ACCEPTED',
-        createdAt: { [Op.gte]: oneWeekAgo },
-      },
-    });
-
-    return { lastWeekTotalPendingCases, lastWeekTotalAcceptedCases };
-  }
-
-  private async getCurrentWeekCounts(id: string) {
-    const oneWeekAgo = new Date();
-    oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
-
-    const currentWeekTotalPendingCases = await this.db.count(CaseExperts, {
-      where: {
-        invitationStatus: 'PENDING',
-        createdAt: { [Op.gte]: oneWeekAgo },
-      },
-    });
-
-    const currentWeekTotalAcceptedCases = await this.db.count(CaseExperts, {
-      where: {
-        invitationStatus: 'ACCEPTED',
-        llaStatus: 'ACCEPTED',
-        createdAt: { [Op.gte]: oneWeekAgo },
-      },
-    });
-
-    return {
-      currentWeekTotalPendingCases,
-      currentWeekTotalAcceptedCases,
-    };
   }
 
   async downloadCSVFile(): Promise<string> {
@@ -828,11 +549,3 @@ export class UserService {
     }
   }
 }
-// const { rows: data, count } = await this.db.findAndCount(Users, {
-//   attributes: this.selectFields,
-//   where: whereCondition,
-//   include: includeClause,
-//   limit,
-//   offset: limit * (page - 1),
-//   order: [[sortField, sortOrder]],
-// });
