@@ -1,0 +1,71 @@
+<html>
+  <head>
+    <meta http-equiv='Content-Type' content='text/html; charset=utf-8' />
+    <title>Welcome to Base Mobile Application</title>
+    <link
+      href='https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700&display=swap'
+      rel='stylesheet'
+    />
+    <style type='text/css'>
+      body { background-color: #f9fafb; margin: 0; font-family: 'Inter',
+      sans-serif; } .container { max-width: 576px; margin: 0 auto; background:
+      #ffffff; padding: 23px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,
+      0, 0, 0.1); } .logo { text-align: center; margin-bottom: 20px; } .logo img
+      { width: 100px; } .title { text-align: center; color: #000000; font-size:
+      24px; font-weight: 600; margin-bottom: 25px; } .text { color: #344054;
+      font-size: 16px; line-height: 24px; margin-bottom: 18px; } .password {
+      font-weight: 600; color: #33b15c; margin-bottom: 18px; } .cta {
+      text-align: center; margin-top: 20px; margin-bottom: 12px } .cta a {
+      display: inline-block; background-color: #009d33; color: #ffffff;
+      text-decoration: none; padding: 10px 20px; border-radius: 8px; font-size:
+      16px; font-weight: 600; } .footer { text-align: center; font-size: 14px;
+      color: #696969; margin-top: 32px; border-top: 1px solid #eaecf0;
+      padding-top: 10px; }
+    </style>
+  </head>
+  <body>
+
+    <div class='container'>
+      <div class='logo'>
+        <a href='{{clientUrl}}'><img
+            src='{{logoPath}}'
+            style='width: 100px;'
+            alt=''
+          /></a>
+      </div>
+      <div class='title'>Welcome to Base</div>
+      <div class='text'>Hi {{body.name}},</div>
+      <div class='text'>
+        We're thrilled to have you join the Base community! Use the credentials
+        below to log in to the Base Mobile Application and start exploring.
+      </div>
+      <div class='text'>Please download the mobile app from App stores: </div>
+
+      <div class='cta'>
+        <a href='https://www.google.com' target='_blank'>Apple Store</a>
+      </div>
+      <div class='cta'>
+        <a href='https://www.google.com' target='_blank'>Google Play Store</a>
+      </div>
+      <div class='text'>Kindly use the below credentials to access the app:</div>
+      <div class='password'>
+        Username:
+        <strong>{{body.email}}</strong>
+      </div>
+      <div class='password'>Password:
+        <strong>{{body.currentPassword}}</strong>
+      </div>
+
+      {{! <div class='cta'>
+        <a href='https://vipr-mobile-app-link.com' target='_blank'>Log in to
+          ViPR Mobile</a>
+      </div> }}
+      <div class='text'>
+        Thank you for choosing Base! We're here to support you every step of the
+        way.
+      </div>
+      <div class='text'>Best wishes,<br />The Base Team</div>
+      <div class='footer'>© 2024 Base. All Rights Reserved.</div>
+    </div>
+  </body>
+</html>

@@ -1,0 +1,87 @@
+<html lang='en'>
+  <head>
+    <meta charset='UTF-8' />
+    <meta name='viewport' content='width=device-width, initial-scale=1.0' />
+    <title>{{body.subject}}</title>
+    <style>
+      body { font-family: Arial, sans-serif; line-height: 1.5; margin: 20px;
+      padding: 20px; background-color: #f8f8f8; } .container { background-color:
+      #fff; padding: 20px; border-radius: 5px; box-shadow: 0 0 10px rgba(0, 0,
+      0, 0.1); } .status { margin: 10px 0; padding: 10px; border-left: 4px solid
+      #007BFF; background-color: #e9f5ff; } .logo-box{ text-align: center; }
+      .logo { width: 100px; } .footer { margin-top: 20px; font-size: 12px;
+      color: #777; }
+    </style>
+  </head>
+  <body>
+    <div class='container'>
+      <div class='logo-box'>
+        <img class='logo' src='{{logoPath}}' alt='' />
+      </div>
+      <h2>Hi Super Admin, </h2>
+      <p>Recently, you have tried importing bulk accounts on our Portal.</p>
+      <p>Out of
+        {{body.total}}, below
+        {{body.failed}}
+        users have not been imported successfully due to incomplete information:
+      </p>
+
+      <table
+        style='border-collapse: collapse; width: 100%; font-family: Arial, sans-serif;'
+      >
+        <thead style='background-color: #f2f2f2;'>
+          <tr>
+            <th
+              style='border: 1px solid #ddd; padding: 8px; text-align: left;'
+            >First Name</th>
+            <th
+              style='border: 1px solid #ddd; padding: 8px; text-align: left;'
+            >Last Name</th>
+            <th
+              style='border: 1px solid #ddd; padding: 8px; text-align: left;'
+            >Email</th>
+            <th
+              style='border: 1px solid #ddd; padding: 8px; text-align: left;'
+            >Phone</th>
+            <th
+              style='border: 1px solid #ddd; padding: 8px; text-align: left;'
+            >Phone Code</th>
+            <th
+              style='border: 1px solid #ddd; padding: 8px; text-align: left;'
+            >Job Title</th>
+            <th
+              style='border: 1px solid #ddd; padding: 8px; text-align: left;'
+            >Location</th>
+          </tr>
+        </thead>
+        <tbody>
+          {{#each body.failedUsers}}
+            <tr>
+              <td
+                style='border: 1px solid #ddd; padding: 8px;'
+              >{{firstname}}</td>
+              <td
+                style='border: 1px solid #ddd; padding: 8px;'
+              >{{lastname}}</td>
+              <td style='border: 1px solid #ddd; padding: 8px;'>{{email}}</td>
+              <td style='border: 1px solid #ddd; padding: 8px;'>{{phone}}</td>
+              <td
+                style='border: 1px solid #ddd; padding: 8px;'
+              >{{dial_code}}</td>
+              <td
+                style='border: 1px solid #ddd; padding: 8px;'
+              >{{jobtitle}}</td>
+              <td
+                style='border: 1px solid #ddd; padding: 8px;'
+              >{{location}}</td>
+            </tr>
+          {{/each}}
+        </tbody>
+      </table>
+      <p>Please create the CSV again for these users by completing the data and
+        import again.
+      </p>
+      <p>Thank you.<br />Base Team</p>
+    </div>
+  </body>
+</html>

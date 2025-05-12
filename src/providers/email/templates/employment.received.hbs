@@ -1,0 +1,59 @@
+<html lang='en'>
+  <head>
+    <meta charset='UTF-8' />
+    <meta name='viewport' content='width=device-width, initial-scale=1.0' />
+    <title>Employment Recived</title>
+    <style>
+      body { font-family: Arial, sans-serif; line-height: 1.5; margin: 20px;
+      padding: 20px; background-color: #f8f8f8; } .container { background-color:
+      #fff; padding: 20px; border-radius: 5px; box-shadow: 0 0 10px rgba(0, 0,
+      0, 0.1); } .body { text-align:center; } .logo { width: 100px; } .qr-code{
+      width: 300px; } .note { font-size: 13px; } .footer { margin-top: 20px;
+      font-size: 12px; color: #777; } .table-box{ text-align: center; } table {
+      width: 500px; border: 0px; outline: 0px; margin:0 auto 10px; } th,td {
+      text-align: left; border: 0px; outline: 0px; }
+    </style>
+  </head>
+  <body>
+    <div class='container'>
+      <div class='body'>
+        <div class='logo-box'>
+          <img class='logo' src='{{logoPath}}' alt='' />
+        </div>
+        <h2>Payment Successfully Completed</h2>
+        <table>
+          <tbody>
+            <tr>
+              <td><strong>Registration No</strong></td>
+              <td>{{body.reg_no}}</td>
+              <td><strong>Name</strong></td>
+              <td>{{body.name}}</td>
+            </tr>
+            <tr>
+              <td><strong>Phone No</strong></td>
+              <td>{{body.phone}}</td>
+              <td><strong>Date Of Birth</strong></td>
+              <td>{{body.dob}}</td>
+            </tr>
+            <tr>
+              <td><strong>State</strong></td>
+              <td colspan='3'>{{body.state}}</td>
+            </tr>
+            <tr>
+              <td><strong>Address</strong></td>
+              <td colspan='3'>{{body.address}}</td>
+            </tr>
+          </tbody>
+        </table>
+        <img src='{{body.qrcode}}' class='qr-code' />
+        <p class='note'>
+          To complete the verification process, please send your employer to one
+          of our offices with the QR code above to capture their fingerprints
+          and photo.
+        </p>
+      </div>
+      <p>If you have any further questions, feel free to reach out.</p>
+      <p>Best regards,<br />Base</p>
+    </div>
+  </body>
+</html>
