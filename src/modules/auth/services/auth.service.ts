@@ -190,20 +190,6 @@ export class AuthService {
           ],
         };
         const userData = await this.db.getByPk(Users, user.id, query);
-        // delete user.password;
-        // delete user.auth;
-        // const userData = {
-        //   fulllName: user.fullname,
-        //   id: user.id,
-        //   firstname: user.firstname,
-        //   lastname: user.lastname,
-        //   email: user.email,
-        //   industry: user.industry,
-        //   jobtitle: user.jobtitle,
-        //   location: user.location,
-        //   role: user.role,
-        //   phone: user.phone,
-        // };
 
         return {
           ...userData.toJSON(),
@@ -266,15 +252,8 @@ export class AuthService {
             'email',
             'phone',
             'phoneCode',
-            'role',
             'avatar',
-            'location',
-            'postcode',
-            'totalExperience',
-            'isProfileSetup',
             'isUserEmailVerify',
-            //'bio',
-            'experienceDetails',
             'countryCode',
           ],
         };
@@ -567,67 +546,14 @@ export class AuthService {
     try {
       // Fetch the user data from the database, including expertSpecialities
       const userData = await this.db.get(Users, {
-        where: { id: userId },
-        include: [
-          {
-            model: ExpertSpecialities,
-            as: 'userExpertSpecialities', // Alias defined in the Users model
-            include: [
-              {
-                model: Specialities, // Include the related Specialities model
-                attributes: ['id', 'title'], // Fetch specific fields from Specialities
-              },
-            ],
-          },
-          {
-            model: ExpertCaseSpecialities,
-            as: 'userExpertCaseSpecialities', // Alias defined in the Users model
-            include: [
-              {
-                model: CaseType, // Include the related Specialities model
-                attributes: ['id', 'title'], // Fetch specific fields from Specialities
-              },
-            ],
-          },
-          {
-            model: ExpertFeeStructure,
-            as: 'userExpertFeeStructure', // Alias defined in the Users model
-            include: [
-              {
-                model: CaseType, // Include the related Specialities model
-                attributes: ['id', 'title'], // Fetch specific fields from Specialities
-              },
-            ],
-          },
-          {
-            model: UserDocuments,
-            as: 'userDocuments', // Alias defined in the Users model
-            attributes: [
-              'id',
-              'documentType',
-              'documentName',
-              'description',
-              'registerBodyId',
-            ],
-          },
-        ],
+        where: { id: userId }
       });
 
       // If user not found
       if (!userData) {
         throw new BadRequestException('User not found');
       }
-      let expertCvPath = '';
-      let expertRegulatoryFilePath = '';
-      let expertRegistrationBodyFilePath = '';
-      let registerBodyId = '';
-      let expertRegistrationNumberFilePath = '';
-      let expertRegistrationNumber = '';
-      let expertTrainingFilePath = '';
-      let expertTraningDetails = '';
-      let expertVatRegistrationFilePath = '';
-      let expertVatRegistrationDetails = '';
-
+   
       let avatarPath = userData?.avatar || '';
       if (userData?.avatar) {
         // Generate the avatar URL
@@ -638,17 +564,7 @@ export class AuthService {
       const userDataJSON = userData.toJSON();
       return {
         ...userDataJSON,
-        avatarPath, // Include the avatarPath in the response
-        expertCvPath, // Include the expertCvPath in the response
-        expertRegulatoryFilePath, // Include the expertRegulatoryFilePath in the response
-        expertRegistrationBodyFilePath, // Include the expertRegistrationBodyFilePath in the response
-        registerBodyId, // Include the registerBodyId in the response
-        expertRegistrationNumberFilePath,
-        expertRegistrationNumber,
-        expertTrainingFilePath,
-        expertTraningDetails,
-        expertVatRegistrationDetails,
-        expertVatRegistrationFilePath,
+        avatarPath
       };
     } catch (error) {
       throw error;
@@ -700,9 +616,6 @@ export class AuthService {
     userData.email = payload.email;
     userData.phone = payload.phone;
     userData.phoneCode = payload.dial_code;
-    userData.countryCode = payload.code;
-    userData.postcode = payload.postcode;
-    userData.location = payload.location;
 
     await userData.save();
 
@@ -745,10 +658,6 @@ export class AuthService {
     userData.email = payload.email;
     userData.phone = payload.phone;
     userData.phoneCode = payload.dial_code;
-    userData.countryCode = payload.code;
-    userData.postcode = payload.postcode;
-    userData.location = payload.location;
-    userData.city = payload.city;
 
     await userData.save();
     return;
@@ -816,7 +725,6 @@ export class AuthService {
     userData.lastname = payload.lastname;
     userData.phone = payload.phone;
     userData.phoneCode = payload.dial_code;
-    userData.countryCode = payload.code;
 
     await userData.save();
 
@@ -1020,15 +928,8 @@ export class AuthService {
               'email',
               'phone',
               'phoneCode',
-              'role',
               'avatar',
-              'location',
-              'postcode',
-              'totalExperience',
-              'isProfileSetup',
               'isUserEmailVerify',
-              //'bio',
-              'experienceDetails',
               'countryCode',
             ],
           };
@@ -1136,15 +1037,8 @@ export class AuthService {
               'email',
               'phone',
               'phoneCode',
-              'role',
               'avatar',
-              'location',
-              'postcode',
-              'totalExperience',
-              'isProfileSetup',
               'isUserEmailVerify',
-              //'bio',
-              'experienceDetails',
               'countryCode',
             ],
           };
@@ -1224,12 +1118,7 @@ export class AuthService {
         password: hashedPassword,
         phone: payload.phone,
         phoneCode: payload.dial_code,
-        countryCode: payload.code,
-        role: payload.role,
         status: true,
-        postcode: payload.postcode,
-        companyName: payload?.companyname || '',
-        location: payload.location,
         lastLogin: lastLoginTime,
       };
 
@@ -1237,7 +1126,6 @@ export class AuthService {
 
       const tokenPayload: IPayloadUserJwt = {
         userId: userData.id,
-        role: payload.role,
         lastLogin: lastLoginTime,
       };
 
@@ -1254,12 +1142,8 @@ export class AuthService {
             'phoneCode',
             'countryCode',
             'lastLogin',
-            'location',
-            'postcode',
             'isUserEmailVerify',
             'status',
-            'isProfileSetup',
-            'approvalStatus',
           ],
         }),
       ]);

@@ -64,7 +64,6 @@ export class MessagesController {
   }
 
   @Post('get-messages')
-  @Roles('EXPERT', 'SOLICITOR', 'SUPERADMIN')
   @UseInterceptors(NoFilesInterceptor())
   @ApiOperation({ description: 'Get list of all the messages' })
   @ApiBody({ type: CreateMessageDto })
@@ -73,7 +72,6 @@ export class MessagesController {
   }
 
   @Put('update-message/:id')
-  @Roles('EXPERT', 'SOLICITOR')
   @ApiOperation({ description: 'Update Message' })
   @ApiBody({ type: UpdateMessageDto })
   update(@Param('id') id: string, @AuthUser() user: Users, @Body() payload: UpdateMessageDto) {
@@ -81,7 +79,6 @@ export class MessagesController {
   }
 
   @Post('mark-read-messages')
-  @Roles('EXPERT', 'SOLICITOR')
   @ApiOperation({ description: 'Update Message status to read' })
   @ApiBody({ type: UpdateMessageDto })
   markAsReadMessages(@AuthUser() user: Users) {

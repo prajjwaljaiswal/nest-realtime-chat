@@ -79,13 +79,6 @@ export class UsersController {
     return this.userService.updateStatus(payload);
   }
 
-  @Post('update-approval-status')
-  @ApiOperation({ description: 'User approval Status Update' })
-  @ApiBody({ type: ApprovalUserDTO })
-  async updateApprovalStatus(@Body() payload: ApprovalUserDTO) {
-    return this.userService.updateApprovalStatus(payload);
-  }
-
   @Delete('delete')
   @ApiOperation({ description: 'User Delete' })
   @ApiBody({ type: DeleteUserDTO })

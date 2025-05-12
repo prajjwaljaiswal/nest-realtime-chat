@@ -131,25 +131,7 @@ export class SignupDTO {
   @IsNotEmpty()
   @ApiProperty()
   dial_code: string;
-
-  @IsString()
-  @IsNotEmpty()
-  @ApiProperty()
-  location: string;
-
-  @IsString()
-  @IsNotEmpty()
-  @ApiProperty()
-  postcode: string;
-
-  @IsString()
-  @ApiProperty()
-  companyname: string;
-
-  @IsNotEmpty()
-  @IsEnum(USER_ROLE)
-  @ApiProperty()
-  role?: USER_ROLE;
+  
 }
 
 export class GenerateOtpDTO {

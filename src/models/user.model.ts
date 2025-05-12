@@ -96,27 +96,6 @@ export class Users extends BaseModel<Users> {
   })
   countryCode: string;
 
-  @Column({
-    type: DataType.STRING,
-    allowNull: true,
-    defaultValue: null,
-  })
-  location: string; // address or location
-
-  @Column({
-    type: DataType.STRING,
-    allowNull: true,
-    defaultValue: null,
-  })
-  city: string; // address or location
-
-  @Column({
-    type: DataType.STRING(10),
-    allowNull: true,
-    defaultValue: null,
-  })
-  postcode: string; // pincode or postcode of the location
-
 
   @Column({
     type: DataType.DATE,

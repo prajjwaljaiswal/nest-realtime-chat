@@ -197,16 +197,6 @@ export class CreateMobileUserDTO {
   @ApiProperty()
   dial_code: string;
 
-  @IsOptional()
-  @IsString()
-  @ApiProperty()
-  location?: string;
-
-  @IsString()
-  @IsNotEmpty()
-  @ApiProperty()
-  state: string;
-
   @IsNotEmpty({ message: 'The email field is required.' })
   @IsString()
   @IsEmail({}, { message: 'Please enter a valid email address.' })
@@ -218,10 +208,6 @@ export class CreateMobileUserDTO {
   })
   email: string;
 
-  @IsNotEmpty()
-  @IsEnum(USER_ROLE)
-  @ApiProperty()
-  role?: USER_ROLE;
 }
 
 export class UserStatusDTO {

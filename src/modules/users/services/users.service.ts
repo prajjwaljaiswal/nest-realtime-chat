@@ -55,15 +55,8 @@ export class UserService {
       'email',
       'phone',
       'phoneCode',
-      'countryCode',
-      'location',
-      'postcode',
-      'companyName',
-      'role',
       'lastLogin',
       'isUserEmailVerify',
-      'approvalStatus',
-      'experienceDetails',
       'status',
       'createdAt',
       'updatedAt',
@@ -133,7 +126,6 @@ export class UserService {
         phone: payload.phone,
         phoneCode: payload.dial_code,
         countryCode: payload.code,
-        role: payload.role,
         isUserEmailVerify: true,
       };
 
@@ -297,7 +289,7 @@ export class UserService {
 
     const user = await this.db.update(
       Users,
-      { ...payload, phoneCode: payload.dial_code, countryCode: payload.code },
+      { ...payload, phoneCode: payload.dial_code },
       {
         where: whereCondition,
         returning: true,
@@ -384,89 +376,7 @@ export class UserService {
     }
   }
 
-  // async updateApprovalStatus(payload: ApprovalUserDTO) {
-  //   try {
-  //     const user = await this.db.get(Users, {
-  //       where: {
-  //         id: payload.id,
-  //       },
-  //     });
-  //     user.approvalStatus = payload.approvalStatus;
 
-  //     user.rejectionComments = payload.rejectionComments;
-  //     console.log('Updating approval status:', {
-  //       id: payload.id,
-  //       approvalStatus: payload.approvalStatus,
-  //       rejectionComments: payload.rejectionComments,
-  //     });
-  //     await user.save();
-  //     return user.toJSON();
-  //   } catch (error) {
-  //     throw error;
-  //   }
-  // }
-
-  async updateApprovalStatus(payload: ApprovalUserDTO) {
-    try {
-      // Ensure the primary key (id) and required fields are included in the query
-      const user = await this.db.get(Users, {
-        attributes: [
-          'id',
-          'role',
-          'firstname',
-          'lastname',
-          'email',
-          'approvalStatus',
-          'rejectionComments',
-        ],
-        where: {
-          id: payload.id,
-        },
-      });
-
-      if (!user) {
-        throw new BadRequestException('User not found');
-      }
-
-      console.log('Updating approval status:', {
-        id: payload.id,
-        approvalStatus: payload.approvalStatus,
-        rejectionComments: payload.rejectionComments,
-      });
-
-      // Save the updated user instance
-      await user.save();
-
-      const clientUrl = process.env.CLIENT_URL;
-      const logoUrl = `${clientUrl}assets/images/logo_copy.png`;
-
-      // Determine the email template, slug, and subject based on role and approval status
-      let template = '';
-      let slug = '';
-      let subject = '';
-
-      // Send email notification if a valid template and slug are determined
-      if (template && slug) {
-        this.emailService.sendEmail({
-          template: template,
-          slug: slug,
-          email: user.email,
-          subject: subject,
-          body: {
-            fullName: `${user.firstname} ${user.lastname || ''}`, // Full name
-            email: user.email,
-            rejectionComments: payload.rejectionComments || '', // Rejection reason
-            logoUrl: logoUrl,
-          },
-        });
-      }
-
-      return user.toJSON();
-    } catch (error) {
-      console.error('Error in updateApprovalStatus:', error);
-      throw error;
-    }
-  }
   async delete(payload: DeleteUserDTO) {
     try {
       if (!payload?.id.length) {
