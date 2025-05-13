@@ -81,7 +81,6 @@ export class UserService {
 
       const includeClause: any[] = [];
 
-
       const { rows: data, count } = await this.db.findAndCount(Users, {
         attributes: this.selectFields,
         where: whereCondition,
